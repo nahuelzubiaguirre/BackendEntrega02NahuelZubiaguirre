@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+    
+    <h1>Productos en Tiempo Real</h1>
+    
+    <ul id="productList"></ul>
+
+    <form id="productForm">
+        <input type="text" name="tittle" placeholder="Título" required>
+        <input type="text" name="description" placeholder="Descripción" required>
+        <input type="text" name="code" placeholder="Código" required>
+        <input type="number" name="price" placeholder="Precio" required>
+        <input type="number" name="stock" placeholder="Stock" required>
+        <input type="text" name="category" placeholder="Categoría" required>
+        <button type="submit">Agregar Producto</button>
+    </form>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        let products = []; 
+
+        function updateProductList(products) {
+            const productList = document.getElementById('productList');
+            productList.innerHTML = '';
+            products.forEach(product => {
+                const li = document.createElement('li');
+                li.textContent = `${product.tittle} - $${product.price}`;
+                productList.appendChild(li);
+            });
+        }
+
+        socket.on('nuevoProducto', (producto) => {
+            products.push(producto); 
+            updateProductList(products);
+        });
+
+        socket.on('productoEliminado', (id) => {
+            products = products.filter(product => product.id !== id);
+            updateProductList(products);
+        });
+
+        document.getElementById('productForm').addEventListener('submit', (event) => {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const data = Object.fromEntries(formData);
+            socket.emit('agregarProducto', data);
+            event.target.reset();
+        });
+    </script>
+    
+</body>
+</html>

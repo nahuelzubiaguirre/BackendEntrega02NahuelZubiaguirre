@@ -2,6 +2,7 @@ import {response as res , Router} from 'express'
 import { request as req } from 'http'
 import {v4 as uuidv4} from 'uuid'
 import { uploader } from '../utils.js'
+import {io} from '../app.js'
 
 const router = Router()
 
@@ -11,6 +12,9 @@ router.get('/', (req, res) => {
     res.json(products)
 })
 
+router.get('/home'), (req, res) => {
+    res.render('home', {products})
+}
 
 router.get('/:id', (req, res) =>{
     const productoIdBuscado = req.params.id
@@ -47,6 +51,8 @@ router.post ('/', uploader.single('thumbnails'), (req, res) => {
     }
 
     products.push(nuevoProducto)
+
+    io.emit('nuevoProducto', nuevoProducto)
     res.status(201).json(nuevoProducto)
 })
 
@@ -85,12 +91,11 @@ router.delete ('/:id', (req, res) => {
     }
     
     products.splice(productoIndex, 1)
+
+    io.emit('productoEliminado', productoIdAAEliminar)
     res.status(204).json({mensaje: 'Producto Eliminado'})
 
     
 })
-
-
-
 
 export default router;
